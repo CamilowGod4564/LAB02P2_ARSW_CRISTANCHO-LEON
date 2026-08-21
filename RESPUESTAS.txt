@@ -1,0 +1,25 @@
+Parte I - Productor/consumidor
+
+1. El alto consumo inicial de CPU se debe a una espera activa (busy waiting).
+   Consumer ejecutaba un ciclo infinito que consultaba queue.size() repetidamente
+   cuando la cola estaba vacia. Por tanto, la clase responsable es Consumer.
+   La captura adjunta no corresponde al proceso de la aplicacion: muestra
+   IntelliJ IDEA (pid 20496). En VisualVM debe seleccionarse la JVM que ejecuta
+   edu.eci.arst.concprg.prodcons.StartProduction.
+
+2. Consumer ahora usa BlockingQueue.take(). Si la cola esta vacia, el hilo queda
+   bloqueado hasta que Producer deposite un elemento; no hace sondeo continuo.
+   Producer usa put(), que tambien bloquea si la cola llega al limite. Con ello
+   se elimina la espera activa y se reduce el uso de CPU mientras se espera.
+
+3. La cola es un ArrayBlockingQueue cuyo tamano es stockLimit (por defecto 5).
+   En el escenario predeterminado el productor no tiene demora y el consumidor
+   tarda 1000 ms: cuando hay cinco elementos, put() suspende al productor hasta
+   que el consumidor libere espacio. Asi nunca se supera el stock ni se usa CPU
+   innecesariamente durante la espera.
+
+Ejecucion de verificacion:
+  java -cp target/classes edu.eci.arst.concprg.prodcons.StartProduction
+
+Para repetir el caso del punto 2 (produccion lenta, consumo rapido):
+  java -DproductionDelayMillis=1000 -DconsumptionDelayMillis=0 -DstockLimit=5 -cp target/classes edu.eci.arst.concprg.prodcons.StartProduction
