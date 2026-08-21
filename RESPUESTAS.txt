@@ -1,0 +1,42 @@
+Parte I - Productor/consumidor
+
+1. El alto consumo inicial de CPU se debe a una espera activa (busy waiting).
+   Consumer ejecutaba un ciclo infinito que consultaba queue.size() repetidamente
+   cuando la cola estaba vacia. Por tanto, la clase responsable es Consumer.
+   La captura adjunta no corresponde al proceso de la aplicacion: muestra
+   IntelliJ IDEA (pid 20496). En VisualVM debe seleccionarse la JVM que ejecuta
+   edu.eci.arst.concprg.prodcons.StartProduction.
+
+2. Consumer ahora usa BlockingQueue.take(). Si la cola esta vacia, el hilo queda
+   bloqueado hasta que Producer deposite un elemento; no hace sondeo continuo.
+   Producer usa put(), que tambien bloquea si la cola llega al limite. Con ello
+   se elimina la espera activa y se reduce el uso de CPU mientras se espera.
+
+3. La cola es un ArrayBlockingQueue cuyo tamano es stockLimit (por defecto 5).
+   En el escenario predeterminado el productor no tiene demora y el consumidor
+   tarda 1000 ms: cuando hay cinco elementos, put() suspende al productor hasta
+   que el consumidor libere espacio. Asi nunca se supera el stock ni se usa CPU
+   innecesariamente durante la espera.
+
+Ejecucion de verificacion:
+  java -cp target/classes edu.eci.arst.concprg.prodcons.StartProduction
+
+Para repetir el caso del punto 2 (produccion lenta, consumo rapido):
+  java -DproductionDelayMillis=1000 -DconsumptionDelayMillis=0 -DstockLimit=5 -cp target/classes edu.eci.arst.concprg.prodcons.StartProduction
+
+Parte II - Buscador de listas negras
+
+Se implemento HostBlackListsValidator con busqueda paralela. La sobrecarga
+checkHost(ipaddress, threadCount) divide las listas entre los hilos; checkHost(ipaddress)
+usa los procesadores disponibles.
+
+Cada hilo consulta su rango mientras el indicador Atomico alarmReached sea falso.
+La lista compartida de ocurrencias se protege con un unico lock de corta duracion.
+Al agregar la quinta ocurrencia, dentro de ese mismo bloque sincronizado, se marca
+alarmReached=true. Los demas hilos ven el indicador atomico y terminan sin seguir
+consultando listas. Asi no hay condiciones de carrera, no se agregan mas de cinco
+resultados y se reporta el host como no confiable apenas se alcanza el umbral.
+
+Verificacion realizada con 200.24.34.55:
+  Resultado: [23, 50, 200, 500, 1000]
+  Listas revisadas: 5924 de 80000 (varia segun la planificacion de los hilos).

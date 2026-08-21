@@ -5,30 +5,35 @@
  */
 package edu.eci.arst.concprg.prodcons;
 
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  *
  * @author hcadavid
  */
-public class Consumer extends Thread{
-    
-    private Queue<Integer> queue;
-    
-    
-    public Consumer(Queue<Integer> queue){
-        this.queue=queue;        
+public class Consumer extends Thread {
+
+    private final BlockingQueue<Integer> queue;
+    private final long consumptionDelayMillis;
+
+    public Consumer(BlockingQueue<Integer> queue, long consumptionDelayMillis) {
+        this.queue = queue;
+        this.consumptionDelayMillis = consumptionDelayMillis;
     }
-    
+
     @Override
     public void run() {
-        while (true) {
-
-            if (queue.size() > 0) {
-                int elem=queue.poll();
-                System.out.println("Consumer consumes "+elem);                                
+        while (!isInterrupted()) {
+            try {
+                // take blocks until a product is available; it avoids busy waiting.
+                int elem = queue.take();
+                System.out.println("Consumer consumes " + elem);
+                if (consumptionDelayMillis > 0) {
+                    Thread.sleep(consumptionDelayMillis);
+                }
+            } catch (InterruptedException ex) {
+                interrupt();
             }
-            
         }
     }
 }
