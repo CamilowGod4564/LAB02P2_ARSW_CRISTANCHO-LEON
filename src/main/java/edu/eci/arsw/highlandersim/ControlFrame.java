@@ -85,33 +85,36 @@ public class ControlFrame extends JFrame {
         toolBar.add(btnStart);
 
         JButton btnPauseAndCheck = new JButton("Pause and check");
-        btnPauseAndCheck.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        btnPauseAndCheck.addActionListener(e -> {
 
-                /*
-				 * COMPLETAR
-                 */
-                int sum = 0;
+            for (Immortal im : immortals) im.requestPause();
+
+            boolean allPaused;
+            do {
+                allPaused = true;
                 for (Immortal im : immortals) {
-                    sum += im.getHealth();
+                    if (!im.isPaused()) { allPaused = false; break; }
                 }
+                if (!allPaused) {
+                    try {
+                        Thread.sleep(5);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } while (!allPaused);
 
-                statisticsLabel.setText("<html>"+immortals.toString()+"<br>Health sum:"+ sum);
-                
-                
-
-            }
+            int sum = 0;
+            for (Immortal im : immortals) sum += im.getHealth();
+            statisticsLabel.setText("<html>" + immortals + "<br>Health sum:" + sum);
         });
+
         toolBar.add(btnPauseAndCheck);
 
         JButton btnResume = new JButton("Resume");
-
         btnResume.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                /**
-                 * IMPLEMENTAR
-                 */
-
+                for (Immortal im : immortals) im.resumeImmortal();
             }
         });
 
@@ -127,6 +130,15 @@ public class ControlFrame extends JFrame {
 
         JButton btnStop = new JButton("STOP");
         btnStop.setForeground(Color.RED);
+        btnStop.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (immortals == null) return;
+                for (Immortal im : immortals) {
+                    im.stopImmortal();
+                }
+                btnStart.setEnabled(true);
+            }
+        });
         toolBar.add(btnStop);
 
         scrollPane = new JScrollPane();
