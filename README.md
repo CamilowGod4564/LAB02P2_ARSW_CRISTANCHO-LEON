@@ -1,4 +1,8 @@
 
+# Jeyder Nicolay Leon Lancheros
+# Juan Camilo Cristancho
+## Las respuestas estan en el archivo llamado RESPUESTAS.txt
+
 ## Escuela Colombiana de Ingeniería
 ### Arquitecturas de Software – ARSW
 
